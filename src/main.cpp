@@ -1,24 +1,31 @@
 #include <Arduino.h>
+#include <Servo.h>
 
 /* DECLARATIONS*/
 void openPins(void);
 int getDistance();
 void setLight(int distance);
 void setDoor(int distance);
+void openServo(void);
 
 /* DEFINES */
 #define TRIG1 10
 #define ECHO1 9
 #define LED1 11
+#define PIN_SERVO_DOOR 8
 
+/* GLOBALS */
+Servo doorServo_g;
+bool doorState;
 
 int main_func(void)
 {
-    Serial.println("Test");
-    openPins();
-    
     int distance;
 
+    openPins();
+    openServo();
+
+    doorServo_g.write(0);
     while(1)
     {
         delay(250);
@@ -34,13 +41,23 @@ int main_func(void)
 
 void setDoor(int distance)
 {
+    int openDoorPos = 95;
+    
     if(distance <= 5)
     {
         Serial.println("Opening Door:");
+        doorState = true; //opened
+        doorServo_g.write(openDoorPos);
+        delay(5000);
     }
     else if(distance > 5)
     {
-
+        if(doorState)
+        {
+            Serial.println("Closing Door:");
+            doorState = false;
+            doorServo_g.write(0);
+        }
     }
 }
 
@@ -73,6 +90,17 @@ int getDistance()
     distance = echoTime * 0.034 / 2;
 
     return distance;
+}
+
+void openServo()
+{
+    // initial door position upon power-up
+    int initialPos = 0;
+    doorState = false; //default is closed
+
+    doorServo_g.attach(PIN_SERVO_DOOR);
+    delay(100);
+    doorServo_g.write(initialPos);
 }
 
 void openPins()
