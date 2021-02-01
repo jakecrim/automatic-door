@@ -14,12 +14,15 @@ void button1_ISR(void);
 #define ECHO1 9
 #define LED1 11
 #define PIN_SERVO_DOOR 8
-#define PIN_BUTTON1 12
+#define PIN_BUTTON1 2
+#define DEBOUNCE_DELAY 250
 
 /* GLOBALS */
 Servo doorServo_g;
 bool doorState;
-int button1State;
+volatile int button1State;
+long prevDebounceTime = 0;
+long debounceDelay = DEBOUNCE_DELAY;
 
 int main_func(void)
 {
@@ -39,7 +42,15 @@ int main_func(void)
         Serial.print("Distance measured:");
         Serial.println(distance);
         setLight(distance); 
-        setDoor(distance);
+        if(!button1State)
+        {
+            setDoor(distance);
+        }
+        else
+        {
+            button1State = 0;
+            delay(5000);
+        }
     }
 
     return 0;
@@ -49,7 +60,7 @@ void setDoor(int distance)
 {
     int openDoorPos = 0;
     
-    if(distance <= 5)
+    if(distance <= 5 || button1State)
     {
         Serial.println("Opening Door:");
         doorState = true; //opened
@@ -101,8 +112,17 @@ int getDistance()
 void button1_ISR()
 {
     button1State = digitalRead(PIN_BUTTON1);
-    Serial.println("Button State is: ");
-    Serial.print(button1State);
+    Serial.print("Button State is: ");
+    Serial.println(button1State);
+    if ( (millis() - prevDebounceTime) > debounceDelay) 
+    {
+        setDoor(0);
+        Serial.println("After Set door interrupt");
+        prevDebounceTime = millis();
+    }
+
+
+
 }
 
 void openServo()
@@ -124,6 +144,7 @@ void openPins()
     pinMode(LED1, OUTPUT);
     pinMode(PIN_BUTTON1, INPUT);
     attachInterrupt(0, button1_ISR, CHANGE);
+    button1State = 0;
 }
 
 // starts here, sets up serial output, and goes to 'main'
