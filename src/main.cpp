@@ -7,16 +7,19 @@ int getDistance();
 void setLight(int distance);
 void setDoor(int distance);
 void openServo(void);
+void button1_ISR(void);
 
 /* DEFINES */
 #define TRIG1 10
 #define ECHO1 9
 #define LED1 11
 #define PIN_SERVO_DOOR 8
+#define PIN_BUTTON1 12
 
 /* GLOBALS */
 Servo doorServo_g;
 bool doorState;
+int button1State;
 
 int main_func(void)
 {
@@ -26,6 +29,9 @@ int main_func(void)
     openServo();
 
     doorServo_g.write(95);
+
+
+
     while(1)
     {
         delay(250);
@@ -92,6 +98,13 @@ int getDistance()
     return distance;
 }
 
+void button1_ISR()
+{
+    button1State = digitalRead(PIN_BUTTON1);
+    Serial.println("Button State is: ");
+    Serial.print(button1State);
+}
+
 void openServo()
 {
     // initial door position upon power-up
@@ -109,6 +122,8 @@ void openPins()
     pinMode(TRIG1, OUTPUT);
     pinMode(ECHO1, INPUT);
     pinMode(LED1, OUTPUT);
+    pinMode(PIN_BUTTON1, INPUT);
+    attachInterrupt(0, button1_ISR, CHANGE);
 }
 
 // starts here, sets up serial output, and goes to 'main'
@@ -116,8 +131,8 @@ void setup()
 {
     Serial.begin(9600);
     delay(100);
-    Serial.println("Setup test");
-    Serial.println("uhhh");
+
+    // effectively the start of the program, just to have this setup like a normal 'C' program would be
     main_func();
 }
 
