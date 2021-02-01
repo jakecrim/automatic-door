@@ -25,7 +25,7 @@ int main_func(void)
     openPins();
     openServo();
 
-    doorServo_g.write(0);
+    doorServo_g.write(95);
     while(1)
     {
         delay(250);
@@ -41,7 +41,7 @@ int main_func(void)
 
 void setDoor(int distance)
 {
-    int openDoorPos = 95;
+    int openDoorPos = 0;
     
     if(distance <= 5)
     {
@@ -56,7 +56,7 @@ void setDoor(int distance)
         {
             Serial.println("Closing Door:");
             doorState = false;
-            doorServo_g.write(0);
+            doorServo_g.write(95);
         }
     }
 }
@@ -95,7 +95,7 @@ int getDistance()
 void openServo()
 {
     // initial door position upon power-up
-    int initialPos = 0;
+    int initialPos = 95;
     doorState = false; //default is closed
 
     doorServo_g.attach(PIN_SERVO_DOOR);
